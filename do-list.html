@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <title>Do-list</title>
+    <style>
+        body {
+            font-family: "微软雅黑";
+            font-size: 14px;
+        }
+
+        input {
+            font-size: 14px;
+        }
+
+        body,
+        ul,
+        div,
+        html {
+            padding: 0;
+            margin: 0;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .main {
+            width: 800px;
+            margin: 0 auto;
+        }
+
+        li {
+            list-style-type: none;
+            line-height: 40px;
+            position: relative;
+            border: 1px solid transparent;
+            padding: 0 20px;
+        }
+
+        li .type-span {
+            display: block;
+            width: 10px;
+            height: 10px;
+            background: #ccc;
+            margin: 14px 10px 0 0;
+            float: left;
+        }
+
+        li .type-span.status-end {
+            background: #09f;
+        }
+
+        li .close {
+            position: absolute;
+            color: #f00;
+            font-size: 20px;
+            line-height: 40px;
+            height: 40px;
+            right: 20px;
+            cursor: pointer;
+            display: none;
+            top: 0;
+        }
+
+        li:hover {
+            border: 1px solid #09f;
+        }
+
+        li:hover .close {
+            display: block;
+        }
+
+        li .text-keyword {
+            height: 40px;
+            padding-left: 10px;
+            box-sizing: border-box;
+            margin-left: 10px;
+            width: 80%;
+            display: none;
+        }
+
+        .text-keyword {
+            box-sizing: border-box;
+            width: 100%;
+            height: 40px;
+            padding-left: 10px;
+            outline: none;
+        }
+
+        li div {
+            display: block;
+        }
+
+        li.editing div {
+            display: none;
+        }
+
+        li .text2 {
+            height: 40px;
+            padding-left: 10px;
+            box-sizing: border-box;
+            margin-left: 10px;
+            width: 80%;
+            display: none;
+        }
+
+        li.editing .text2 {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="do-list" class="main">
+        <h1>小目标列表</h1>
+        <div class="list">
+            <h2>添加小目标</h2>
+            <input type="text" class="text-keyword" placeholder="输入小目标后，按回车确认" @keyup.13="addList()" v-model="addText">
+            <p>{{listStatu}}</p>
+            <p>
+                <input type="radio" name="chooseType" checked="true" @click="chooseList(1)"><label
+                    for="choosetType">所有目标</label>
+                <input type="radio" name="chooseType" @click="chooseList(2)"><label for="choosetType">已完成目标</label>
+                <input type="radio" name="chooseType" @click="chooseList(3)"><label for="choosetType">未完成目标</label>
+            </p>
+        </div>
+        <ul>
+            <li v-for="(list,index) in newList" :class="{'editing':curIndex===index}">
+                <span class="type-span" @click="list.status=!list.status" :class="{'status-end':list.status}"></span>
+                <div>
+                    <span @dblclick="curIndex=index">{{list.name}}</span>
+                    <span class="close" @click="deleteList(list)">X</span>
+                </div>
+                <input type="text" class="text2" v-model="list.name" @focus="eidtingBefore(list.name)" @blur="edited"
+                    @keyup.enter="edited" @keyup.esc="cancelEdit(list)">
+            </li>
+
+        </ul>
+    </div>
+</body>
+<script type="text/javascript">
+    var vm = new Vue({
+        el: "#do-list",
+        data: {
+            addText: "",
+            proList: [
+                { name: "html", status: false },
+                { name: "css", status: false },
+                { name: "vue", status: true },
+                { name: "javascript", status: false }
+            ],
+            newList: [],
+            curType: 0,
+            curIndex: "",
+            beforeEditName: ""
+        },
+        computed: {
+            notEnd: function () {
+                return this.proList.filter(function (item) {
+                    return !item.status
+                })
+            },
+            listStatu: function () {
+                return "共" + this.proList.length + "个小目标，" + (this.notEnd.length == 0 ? "已全部完成" : "未完成" + this.notEnd.length + "个，有" + (this.proList.length - this.notEnd.length) + "个完成");
+            }
+        },
+        methods: {
+            addList() {
+                this.proList.push({ name: this.addText, status: false });
+                this.addText = "";
+            },
+            chooseList(type) {
+                this.curType = type;
+                switch (type) {
+                    case 1: this.newList = this.proList; break;
+                    case 3: this.newList = this.notEnd; break;
+                    case 2: this.newList = this.proList.filter(function (item) { return item.status }); break;
+                }
+            },
+            deleteList(item) {
+                var index = this.proList.indexOf(item);
+                this.proList.splice(index, 1);
+                this.chooseList(this.curType);
+            },
+            eidtingBefore(name) {
+                this.beforeEditName = name;
+            },
+            cancelEdit(val) {
+                val.name = this.beforeEditName;
+                this.curIndex = "";
+            },
+            edited() {
+                this.curIndex = "";
+            }
+        },
+        mounted() {
+            this.newList = this.proList;
+        }
+    });
+</script>
+
+</html>
